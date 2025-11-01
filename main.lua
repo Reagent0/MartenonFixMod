@@ -182,28 +182,45 @@ end
 -- INIT
 -- =========================
 
-local fn_battleStarted = "/Game/jRPGTemplate/Blueprints/Components/AC_jRPG_BattleManager.AC_jRPG_BattleManager_C:OnAllBattleStartEventsTriggered"
-local fn_foretellSupernovaAOE = "/Game/Gameplay/Lumina/Passives_Foretell/BP_LU_Foretell_ApplyForetellPerChargeOnTwilightSwitch.BP_LU_Foretell_ApplyForetellPerChargeOnTwilightSwitch_C:SupernovaAOE"
-local fn_damageSupernovaAOE = "/Game/Gameplay/Lumina/Passives_Foretell/BP_LU_Foretell_DealAOEDamagePerChargeOnTwilightSwitch.BP_LU_Foretell_DealAOEDamagePerChargeOnTwilightSwitch_C:SupernovaAOE"
-local fn_onCTurnStartForetell = "/Game/Gameplay/Lumina/Passives_Foretell/BP_LU_Foretell_ApplyForetellPerChargeOnTwilightSwitch.BP_LU_Foretell_ApplyForetellPerChargeOnTwilightSwitch_C:OnCharacterTurnStart"
-local fn_onCTurnStartDamage = "/Game/Gameplay/Lumina/Passives_Foretell/BP_LU_Foretell_DealAOEDamagePerChargeOnTwilightSwitch.BP_LU_Foretell_DealAOEDamagePerChargeOnTwilightSwitch_C:OnCharacterTurnStart"
+local fn_onBattleDependenciesLoaded = "/Game/jRPGTemplate/Blueprints/Components/AC_jRPG_BattleManager.AC_jRPG_BattleManager_C:OnBattleDependenciesFullyLoaded"
+local c_damagePassive = "/Game/Gameplay/Lumina/Passives_Foretell/BP_LU_Foretell_DealAOEDamagePerChargeOnTwilightSwitch.BP_LU_Foretell_DealAOEDamagePerChargeOnTwilightSwitch_C"
+local fn_onCTurnStartDamage = c_damagePassive .. ":OnCharacterTurnStart"
+local fn_damageSupernovaAOE = c_damagePassive .. ":SupernovaAOE"
+local c_foretellPassive = "/Game/Gameplay/Lumina/Passives_Foretell/BP_LU_Foretell_ApplyForetellPerChargeOnTwilightSwitch.BP_LU_Foretell_ApplyForetellPerChargeOnTwilightSwitch_C"
+local fn_onCTurnStartForetell = c_foretellPassive .. ":OnCharacterTurnStart"
+local fn_foretellSupernovaAOE = c_foretellPassive .. ":SupernovaAOE"
 local fn_notifyLuminaPassive = "/Game/jRPGTemplate/Blueprints/Basics/FL_jRPG_CustomFunctionLibrary.FL_jRPG_CustomFunctionLibrary_C:NotifyLuminaPassiveEffectBuff"
 
-local hooked = false
+local hooked1, hooked2, hooked3 = false, false, false
 local preId, postId = -1, -1
 preId, postId = RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
     ExecuteWithDelay(2000, function()
-        RegisterHook(fn_battleStarted, function()
-            if not hooked then
-                RegisterHook(fn_onCTurnStartDamage, OnCharacterTurnStartDamage)
-                RegisterHook(fn_damageSupernovaAOE, DamageSupernovaAOE)
-                RegisterHook(fn_onCTurnStartForetell, OnCharacterTurnStartForetell)
-                RegisterHook(fn_foretellSupernovaAOE, ForetellSupernovaAOE)
+        RegisterHook(fn_onBattleDependenciesLoaded, function()
+            LogLine("Battle dependencies loaded!")
+            if not hooked1 then
+                LogLine("Registering passive notify hook..")
                 RegisterHook(fn_notifyLuminaPassive, NotifyLuminaPassiveEffectBuff)
-                hooked = true
+                hooked1 = true
+            end
+            if not hooked2 then
+                local damagePassive = StaticFindObject(c_damagePassive)
+                if damagePassive:IsValid() then
+                    LogLine("damagePassive found! Registering related hooks..")
+                    RegisterHook(fn_onCTurnStartDamage, OnCharacterTurnStartDamage)
+                    RegisterHook(fn_damageSupernovaAOE, DamageSupernovaAOE)
+                    hooked2 = true
+                end
+            end
+            if not hooked3 then
+                local foretellPassive = StaticFindObject(c_foretellPassive)
+                if foretellPassive:IsValid() then
+                    LogLine("foretellPassive found! Registering related hooks..")
+                    RegisterHook(fn_onCTurnStartForetell, OnCharacterTurnStartForetell)
+                    RegisterHook(fn_foretellSupernovaAOE, ForetellSupernovaAOE)
+                    hooked3 = true
+                end
             end
         end)
-        LogLine("Battle hook registered!")
     end)
     UnregisterHook("/Script/Engine.PlayerController:ClientRestart", preId, postId)
 end)
