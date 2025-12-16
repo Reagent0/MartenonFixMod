@@ -147,7 +147,7 @@ function ForetellSupernovaAOE(self, chargeState)
     local finalForetellAmount = foretellPerCharge["FloatValue_3_9D7EBC84471861D83D95EC8FC8B0C998"] * chargeState:get():Find(3):get()
 
     battleManager.Enemies:ForEach(function(i, enemy)
-        foretellComponent:ApplyForetell(enemy:get().AC_jRPG_CharacterStats, finalForetellAmount, 15, true)
+        foretellComponent:ApplyForetell(enemy:get().AC_jRPG_CharacterStats, finalForetellAmount, 15, true, false)
     end)
 
     ---@class UFL_jRPG_CustomFunctionLibrary_C
