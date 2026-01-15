@@ -194,33 +194,31 @@ local fn_notifyLuminaPassive = "/Game/jRPGTemplate/Blueprints/Basics/FL_jRPG_Cus
 local hooked1, hooked2, hooked3 = false, false, false
 local preId, postId = -1, -1
 preId, postId = RegisterHook("/Script/Engine.PlayerController:ClientRestart", function()
-    ExecuteWithDelay(2000, function()
-        RegisterHook(fn_onBattleDependenciesLoaded, function()
-            LogLine("Battle dependencies loaded!")
-            if not hooked1 then
-                LogLine("Registering passive notify hook..")
-                RegisterHook(fn_notifyLuminaPassive, NotifyLuminaPassiveEffectBuff)
-                hooked1 = true
+    RegisterHook(fn_onBattleDependenciesLoaded, function()
+        LogLine("Battle dependencies loaded!")
+        if not hooked1 then
+            LogLine("Registering passive notify hook..")
+            RegisterHook(fn_notifyLuminaPassive, NotifyLuminaPassiveEffectBuff)
+            hooked1 = true
+        end
+        if not hooked2 then
+            local damagePassive = StaticFindObject(c_damagePassive)
+            if damagePassive:IsValid() then
+                LogLine("damagePassive found! Registering related hooks..")
+                RegisterHook(fn_onCTurnStartDamage, OnCharacterTurnStartDamage)
+                RegisterHook(fn_damageSupernovaAOE, DamageSupernovaAOE)
+                hooked2 = true
             end
-            if not hooked2 then
-                local damagePassive = StaticFindObject(c_damagePassive)
-                if damagePassive:IsValid() then
-                    LogLine("damagePassive found! Registering related hooks..")
-                    RegisterHook(fn_onCTurnStartDamage, OnCharacterTurnStartDamage)
-                    RegisterHook(fn_damageSupernovaAOE, DamageSupernovaAOE)
-                    hooked2 = true
-                end
+        end
+        if not hooked3 then
+            local foretellPassive = StaticFindObject(c_foretellPassive)
+            if foretellPassive:IsValid() then
+                LogLine("foretellPassive found! Registering related hooks..")
+                RegisterHook(fn_onCTurnStartForetell, OnCharacterTurnStartForetell)
+                RegisterHook(fn_foretellSupernovaAOE, ForetellSupernovaAOE)
+                hooked3 = true
             end
-            if not hooked3 then
-                local foretellPassive = StaticFindObject(c_foretellPassive)
-                if foretellPassive:IsValid() then
-                    LogLine("foretellPassive found! Registering related hooks..")
-                    RegisterHook(fn_onCTurnStartForetell, OnCharacterTurnStartForetell)
-                    RegisterHook(fn_foretellSupernovaAOE, ForetellSupernovaAOE)
-                    hooked3 = true
-                end
-            end
-        end)
+        end
     end)
     UnregisterHook("/Script/Engine.PlayerController:ClientRestart", preId, postId)
 end)
